@@ -1,4 +1,3 @@
-use std::path::Path;
 use tao::{
     event::{Event, StartCause},
     event_loop::{
@@ -27,7 +26,10 @@ enum UserEvent {
 }
 
 fn main() {
-    let icon_path = concat!(env!("CARGO_MANIFEST_DIR"), "/resources/light_icon.png");
+    let (
+        light_icon,
+        light_icon_active
+    ) = helpers::load_icons();
 
     let event_loop: EventLoop<UserEvent> = EventLoopBuilder::<UserEvent>::with_user_event().build();
 
@@ -57,13 +59,11 @@ fn main() {
 
         match event {
             Event::NewEvents(StartCause::Init) => {
-                let icon = helpers::load_icon(Path::new(icon_path));
-
                 tray_icon = Some(
                     TrayIconBuilder::new()
                         .with_menu(Box::new(tray_menu.clone()))
                         .with_menu_on_left_click(false)
-                        .with_icon(icon)
+                        .with_icon(light_icon.clone())
                         .build()
                         .unwrap()
                 );
@@ -76,9 +76,12 @@ fn main() {
                     TrayIconEvent::Click {  button, button_state, ..  } => {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
                             if !is_activated {
-                                let _ = keepawake.as_mut().unwrap().activate();
+                                if keepawake.as_mut().unwrap().activate().is_ok() {
+                                    let _ = tray_icon.as_mut().unwrap().set_icon(Some(light_icon_active.clone()));
+                                }
                             } else {
                                 drop(keepawake.clone().unwrap());
+                                let _ = tray_icon.as_mut().unwrap().set_icon(Some(light_icon.clone()));
                             }
 
                             is_activated = !is_activated;
