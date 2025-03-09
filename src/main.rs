@@ -12,7 +12,12 @@ use tray_icon::{
         Menu,
         MenuEvent,
         MenuItem,
-    }, MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent
+    }, 
+    MouseButton, 
+    MouseButtonState, 
+    TrayIcon, 
+    TrayIconBuilder,
+    TrayIconEvent
 };
 
 mod helpers;
