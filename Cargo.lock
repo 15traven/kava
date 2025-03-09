@@ -1080,6 +1080,7 @@ dependencies = [
  "image",
  "tao",
  "tray-icon",
+ "windows",
 ]
 
 [[package]]

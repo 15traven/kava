@@ -13,10 +13,13 @@ use tray_icon::{
         Menu,
         MenuEvent,
         MenuItem,
-    }, MouseButton, TrayIcon, TrayIconBuilder, TrayIconEvent
+    }, MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent
 };
 
 mod helpers;
+mod keepawake;
+
+use keepawake::KeepAwake;
 
 enum UserEvent {
     TrayIconEvent(TrayIconEvent),
@@ -45,7 +48,10 @@ fn main() {
     ]);
 
     let mut tray_icon: Option<TrayIcon> = None;
-   
+    
+    let mut keepawake: Option<KeepAwake> = None;
+    let mut is_activated: bool = false;
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
 
@@ -61,13 +67,21 @@ fn main() {
                         .build()
                         .unwrap()
                 );
+                
+                keepawake = Some(KeepAwake::new().unwrap());
             }
 
             Event::UserEvent(UserEvent::TrayIconEvent(event)) => {
                 match event {
-                    TrayIconEvent::Click { button, ..  } => {
-                        if button == MouseButton::Left {
-                            println!("clicked");
+                    TrayIconEvent::Click {  button, button_state, ..  } => {
+                        if button == MouseButton::Left && button_state == MouseButtonState::Up {
+                            if !is_activated {
+                                let _ = keepawake.as_mut().unwrap().activate();
+                            } else {
+                                drop(keepawake.clone().unwrap());
+                            }
+
+                            is_activated = !is_activated;
                         }
                     },
                     _ => {},
