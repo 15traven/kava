@@ -1,11 +1,16 @@
 use tao::{
-    event::{Event, StartCause},
+    event::{
+        Event, 
+        StartCause, 
+        WindowEvent
+    },
     event_loop::{
         ControlFlow, 
         EventLoop, 
         EventLoopBuilder, 
         EventLoopProxy
-    }
+    }, 
+    window::{Window, WindowBuilder}
 };
 use tray_icon::{
     menu::{
@@ -17,7 +22,7 @@ use tray_icon::{
     MouseButtonState, 
     TrayIcon, 
     TrayIconBuilder,
-    TrayIconEvent
+    TrayIconEvent,
 };
 
 mod helpers;
@@ -31,11 +36,6 @@ enum UserEvent {
 }
 
 fn main() {
-    let (
-        light_icon,
-        light_icon_active
-    ) = helpers::load_icons();
-
     let event_loop: EventLoop<UserEvent> = EventLoopBuilder::<UserEvent>::with_user_event().build();
 
     let proxy: EventLoopProxy<UserEvent> = event_loop.create_proxy();
@@ -54,26 +54,42 @@ fn main() {
         &quit_item
     ]);
 
+    let mut window: Option<Window> = None;
     let mut tray_icon: Option<TrayIcon> = None;
     
     let mut keepawake: Option<KeepAwake> = None;
     let mut is_activated: bool = false;
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, event_loop, control_flow| {
         *control_flow = ControlFlow::Wait;
 
         match event {
             Event::NewEvents(StartCause::Init) => {
+                window = Some(
+                    WindowBuilder::new()
+                        .with_visible(false)
+                        .build(&event_loop)
+                        .unwrap()
+                );
                 tray_icon = Some(
                     TrayIconBuilder::new()
                         .with_menu(Box::new(tray_menu.clone()))
                         .with_menu_on_left_click(false)
-                        .with_icon(light_icon.clone())
                         .build()
                         .unwrap()
                 );
-                
+                helpers::set_icon(
+                    tray_icon.clone().unwrap(), 
+                    window.as_ref().unwrap().theme(), 
+                    is_activated
+                );
+    
                 keepawake = Some(KeepAwake::new().unwrap());
+            }
+
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::ThemeChanged(theme) => helpers::set_icon(tray_icon.clone().unwrap(), theme, is_activated),
+                _ => {}
             }
 
             Event::UserEvent(UserEvent::TrayIconEvent(event)) => {
@@ -82,11 +98,19 @@ fn main() {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
                             if !is_activated {
                                 if keepawake.as_mut().unwrap().activate().is_ok() {
-                                    let _ = tray_icon.as_mut().unwrap().set_icon(Some(light_icon_active.clone()));
+                                    helpers::set_icon(
+                                        tray_icon.clone().unwrap(), 
+                                        window.as_ref().unwrap().theme(),
+                                        true
+                                    );
                                 }
                             } else {
                                 drop(keepawake.clone().unwrap());
-                                let _ = tray_icon.as_mut().unwrap().set_icon(Some(light_icon.clone()));
+                                helpers::set_icon(
+                                    tray_icon.clone().unwrap(), 
+                                    window.as_ref().unwrap().theme(), 
+                                    false
+                                );
                             }
 
                             is_activated = !is_activated;
