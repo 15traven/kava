@@ -14,9 +14,11 @@ use tao::{
 };
 use tray_icon::{
     menu::{
-        Menu,
-        MenuEvent,
-        MenuItem,
+        CheckMenuItem, 
+        Menu, 
+        MenuEvent, 
+        MenuItem, 
+        PredefinedMenuItem
     }, 
     MouseButton, 
     MouseButtonState, 
@@ -49,8 +51,11 @@ fn main() {
     }));
 
     let tray_menu: Menu = Menu::new();
+    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let quit_item: MenuItem = MenuItem::new("Quit", true, None);
     let _ = tray_menu.append_items(&[
+        &autolaunch_item,
+        &PredefinedMenuItem::separator(),
         &quit_item
     ]);
 
@@ -78,17 +83,19 @@ fn main() {
                         .build()
                         .unwrap()
                 );
-                helpers::set_icon(
+                helpers::icons::set_icon(
                     tray_icon.clone().unwrap(), 
                     window.as_ref().unwrap().theme(), 
                     is_activated
                 );
-    
+                let _ = helpers::autolaunch::register();
+                autolaunch_item.set_checked(helpers::autolaunch::is_enabled().unwrap());
+
                 keepawake = Some(KeepAwake::new().unwrap());
             }
 
             Event::WindowEvent { event, .. } => match event {
-                WindowEvent::ThemeChanged(theme) => helpers::set_icon(tray_icon.clone().unwrap(), theme, is_activated),
+                WindowEvent::ThemeChanged(theme) => helpers::icons::set_icon(tray_icon.clone().unwrap(), theme, is_activated),
                 _ => {}
             }
 
@@ -98,7 +105,7 @@ fn main() {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
                             if !is_activated {
                                 if keepawake.as_mut().unwrap().activate().is_ok() {
-                                    helpers::set_icon(
+                                    helpers::icons::set_icon(
                                         tray_icon.clone().unwrap(), 
                                         window.as_ref().unwrap().theme(),
                                         true
@@ -106,7 +113,7 @@ fn main() {
                                 }
                             } else {
                                 drop(keepawake.clone().unwrap());
-                                helpers::set_icon(
+                                helpers::icons::set_icon(
                                     tray_icon.clone().unwrap(), 
                                     window.as_ref().unwrap().theme(), 
                                     false
@@ -121,6 +128,13 @@ fn main() {
             }
 
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
+                if event.id == autolaunch_item.id() {
+                    let _ = match helpers::autolaunch::is_enabled().unwrap() {
+                        true => helpers::autolaunch::disable(),
+                        false => helpers::autolaunch::enable()
+                    };
+                }
+
                 if event.id == quit_item.id() {
                     tray_icon.take();
                     *control_flow = ControlFlow::Exit;
