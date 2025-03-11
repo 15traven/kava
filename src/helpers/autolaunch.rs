@@ -1,8 +1,8 @@
+use windows::core::Error as WindowsError;
 use windows_registry::{
     CURRENT_USER,
     Result as WindowsRegistryResult
 };
-use windows_result::Error as WindowsError;
 
 const APP_NAME: &str = "kava";
 const AL_REGKEY: &str = r"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
