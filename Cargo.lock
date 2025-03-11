@@ -1083,7 +1083,6 @@ dependencies = [
  "winapi",
  "windows",
  "windows-registry",
- "windows-result",
  "winres",
 ]
 
