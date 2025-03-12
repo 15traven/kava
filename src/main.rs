@@ -20,7 +20,8 @@ use tray_icon::{
         Menu, 
         MenuEvent, 
         MenuItem, 
-        PredefinedMenuItem
+        PredefinedMenuItem,
+        AboutMetadata
     }, 
     MouseButton, 
     MouseButtonState, 
@@ -52,11 +53,18 @@ fn main() {
         let _ = proxy.send_event(UserEvent::MenuEvent(event));
     }));
 
+    
     let tray_menu: Menu = Menu::new();
     let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let quit_item: MenuItem = MenuItem::new("Quit", true, None);
     let _ = tray_menu.append_items(&[
         &autolaunch_item,
+        &PredefinedMenuItem::separator(),
+        &PredefinedMenuItem::about(None, Some(AboutMetadata {
+            name: Some(env!("CARGO_PKG_NAME").to_string()),
+            version: Some(env!("CARGO_PKG_VERSION").to_string()),
+            ..Default::default()
+        })),
         &PredefinedMenuItem::separator(),
         &quit_item
     ]);
