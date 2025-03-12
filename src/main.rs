@@ -16,12 +16,7 @@ use tao::{
 };
 use tray_icon::{
     menu::{
-        CheckMenuItem, 
-        Menu, 
-        MenuEvent, 
-        MenuItem, 
-        PredefinedMenuItem,
-        AboutMetadata
+        AboutMetadata, CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu
     }, 
     MouseButton, 
     MouseButtonState, 
@@ -53,13 +48,16 @@ fn main() {
         let _ = proxy.send_event(UserEvent::MenuEvent(event));
     }));
 
+    let preferences_submenu: Submenu = Submenu::new("Preferences", true);
+    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
+    let _ = preferences_submenu.append_items(&[
+        &autolaunch_item
+    ]);
     
     let tray_menu: Menu = Menu::new();
-    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let quit_item: MenuItem = MenuItem::new("Quit", true, None);
     let _ = tray_menu.append_items(&[
-        &autolaunch_item,
-        &PredefinedMenuItem::separator(),
+        &preferences_submenu,
         &PredefinedMenuItem::about(None, Some(AboutMetadata {
             name: Some(env!("CARGO_PKG_NAME").to_string()),
             version: Some(env!("CARGO_PKG_VERSION").to_string()),
