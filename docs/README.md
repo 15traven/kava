@@ -1,4 +1,4 @@
-# Loop
+# Kava
 <img src="./cover.png" width=100% height=100%>
 
 ### Kava prevents your PC from falling asleep and your screen from dimming.
