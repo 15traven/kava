@@ -1,16 +1,9 @@
-use std::{
-    thread, 
-    time::Duration,
-    sync::mpsc::Sender
-};
-
+use std::{thread, time::Duration, sync::mpsc::Sender};
 use windows::{
     core::Error as WindowsError,
     Win32::System::Power::{
-        SetThreadExecutionState,
-        ES_DISPLAY_REQUIRED,
-        ES_SYSTEM_REQUIRED,
-        EXECUTION_STATE,
+        SetThreadExecutionState, ES_DISPLAY_REQUIRED,
+        ES_SYSTEM_REQUIRED, EXECUTION_STATE,
         ES_CONTINUOUS
     }
 };

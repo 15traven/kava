@@ -1,36 +1,22 @@
 #![windows_subsystem = "windows"]
 
 use std::sync::mpsc::channel;
-
 use tao::{
-    event::{
-        Event, 
-        StartCause, 
-        WindowEvent
-    },
+    event::{Event, StartCause, WindowEvent},
     event_loop::{
-        ControlFlow, 
-        EventLoop, 
-        EventLoopBuilder, 
-        EventLoopProxy
+        ControlFlow, EventLoop, 
+        EventLoopBuilder, EventLoopProxy
     }, 
     window::{Window, WindowBuilder}
 };
 use tray_icon::{
     menu::{
-        AboutMetadata, 
-        CheckMenuItem, 
-        Menu, 
-        MenuEvent, 
-        MenuItem, 
-        PredefinedMenuItem, 
-        Submenu
+        AboutMetadata, CheckMenuItem, 
+        Menu, MenuEvent, MenuItem, 
+        Submenu, PredefinedMenuItem
     }, 
-    MouseButton, 
-    MouseButtonState, 
-    TrayIcon, 
-    TrayIconBuilder,
-    TrayIconEvent,
+    MouseButton, MouseButtonState, TrayIcon, 
+    TrayIconBuilder,TrayIconEvent,
 };
 
 mod helpers;
