@@ -23,7 +23,6 @@ fn load_icon(path: &std::path::Path) -> Icon {
     ).expect("Failed to open icon")
 }
 
-
 pub fn set_icon(tray_icon: TrayIcon, theme: Theme, is_activated: bool) {
     let icon: Option<Icon> = if is_activated {
         Some(load_icon(Path::new(ICON_ACTIVE_PATH)))

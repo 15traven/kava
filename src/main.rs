@@ -21,6 +21,7 @@ use tray_icon::{
 
 mod helpers;
 mod keepawake;
+mod autolaunch;
 
 use keepawake::KeepAwake;
 
@@ -102,19 +103,19 @@ fn main() {
                         .build()
                         .unwrap()
                 );
-                helpers::icons::set_icon(
+                helpers::set_icon(
                     tray_icon.clone().unwrap(), 
                     window.as_ref().unwrap().theme(), 
                     is_activated
                 );
-                let _ = helpers::autolaunch::register();
-                autolaunch_item.set_checked(helpers::autolaunch::is_enabled().unwrap());
+                let _ = autolaunch::register();
+                autolaunch_item.set_checked(autolaunch::is_enabled().unwrap());
 
                 keepawake = Some(KeepAwake::new().unwrap());
             }
 
             Event::WindowEvent { event, .. } => match event {
-                WindowEvent::ThemeChanged(theme) => helpers::icons::set_icon(tray_icon.clone().unwrap(), theme, is_activated),
+                WindowEvent::ThemeChanged(theme) => helpers::set_icon(tray_icon.clone().unwrap(), theme, is_activated),
                 _ => {}
             }
 
@@ -124,7 +125,7 @@ fn main() {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
                             if !is_activated {
                                 if keepawake.as_mut().unwrap().activate().is_ok() {
-                                    helpers::icons::set_icon(
+                                    helpers::set_icon(
                                         tray_icon.clone().unwrap(), 
                                         window.as_ref().unwrap().theme(),
                                         true
@@ -132,7 +133,7 @@ fn main() {
                                 }
                             } else {
                                 drop(keepawake.clone().unwrap());
-                                helpers::icons::set_icon(
+                                helpers::set_icon(
                                     tray_icon.clone().unwrap(), 
                                     window.as_ref().unwrap().theme(), 
                                     false
@@ -152,7 +153,7 @@ fn main() {
                         5, 
                         tx.clone()
                     );
-                    helpers::icons::set_icon(
+                    helpers::set_icon(
                         tray_icon.clone().unwrap(), 
                         window.as_ref().unwrap().theme(), 
                         true
@@ -166,7 +167,7 @@ fn main() {
                         45 * 60, 
                         tx.clone()
                     );
-                    helpers::icons::set_icon(
+                    helpers::set_icon(
                         tray_icon.clone().unwrap(), 
                         window.as_ref().unwrap().theme(), 
                         true
@@ -180,7 +181,7 @@ fn main() {
                         1 * 60 * 60, 
                         tx.clone()
                     );
-                    helpers::icons::set_icon(
+                    helpers::set_icon(
                         tray_icon.clone().unwrap(), 
                         window.as_ref().unwrap().theme(), 
                         true
@@ -194,7 +195,7 @@ fn main() {
                         2 * 60 * 60, 
                         tx.clone()
                     );
-                    helpers::icons::set_icon(
+                    helpers::set_icon(
                         tray_icon.clone().unwrap(), 
                         window.as_ref().unwrap().theme(), 
                         true
@@ -204,9 +205,9 @@ fn main() {
                 }
 
                 if event.id == autolaunch_item.id() {
-                    let _ = match helpers::autolaunch::is_enabled().unwrap() {
-                        true => helpers::autolaunch::disable(),
-                        false => helpers::autolaunch::enable()
+                    let _ = match autolaunch::is_enabled().unwrap() {
+                        true => autolaunch::disable(),
+                        false => autolaunch::enable()
                     };
                 }
 
@@ -222,7 +223,7 @@ fn main() {
         if let Ok(_) = rx.try_recv() {
             drop(keepawake.clone().unwrap());
 
-            helpers::icons::set_icon(
+            helpers::set_icon(
                 tray_icon.clone().unwrap(), 
                 window.as_ref().unwrap().theme(), 
                 false
