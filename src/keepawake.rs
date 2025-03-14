@@ -1,3 +1,9 @@
+use std::{
+    thread, 
+    time::Duration,
+    sync::mpsc::Sender
+};
+
 use windows::{
     core::Error as WindowsError,
     Win32::System::Power::{
@@ -42,5 +48,14 @@ impl KeepAwake {
         }
         
         Ok(())
+    }
+
+    pub fn activate_for(&mut self, duration: u64, tx: Sender<()>) {        
+        if self.activate().is_ok() {
+            thread::spawn(move || {
+                thread::sleep(Duration::from_secs(duration));
+                let _ = tx.send(());
+            });
+        }
     }
 }

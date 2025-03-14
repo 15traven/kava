@@ -1,5 +1,7 @@
 #![windows_subsystem = "windows"]
 
+use std::sync::mpsc::channel;
+
 use tao::{
     event::{
         Event, 
@@ -16,7 +18,13 @@ use tao::{
 };
 use tray_icon::{
     menu::{
-        AboutMetadata, CheckMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu
+        AboutMetadata, 
+        CheckMenuItem, 
+        Menu, 
+        MenuEvent, 
+        MenuItem, 
+        PredefinedMenuItem, 
+        Submenu
     }, 
     MouseButton, 
     MouseButtonState, 
@@ -48,6 +56,19 @@ fn main() {
         let _ = proxy.send_event(UserEvent::MenuEvent(event));
     }));
 
+    let activate_for_submenu: Submenu = Submenu::new("Activate for", true);
+    let activate_30_min: MenuItem = MenuItem::new("30 minutes", true, None);
+    let activate_45_min: MenuItem = MenuItem::new("45 minutes", true, None);
+    let activate_1_hour: MenuItem = MenuItem::new("1 hour", true, None);
+    let activate_2_hour: MenuItem = MenuItem::new("2 hour", true, None);
+    let _ = activate_for_submenu.append_items(&[
+        &activate_30_min,
+        &activate_45_min,
+        &PredefinedMenuItem::separator(),
+        &activate_1_hour,
+        &activate_2_hour
+    ]);
+
     let preferences_submenu: Submenu = Submenu::new("Preferences", true);
     let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let _ = preferences_submenu.append_items(&[
@@ -57,6 +78,8 @@ fn main() {
     let tray_menu: Menu = Menu::new();
     let quit_item: MenuItem = MenuItem::new("Quit", true, None);
     let _ = tray_menu.append_items(&[
+        &activate_for_submenu,
+        &PredefinedMenuItem::separator(),
         &preferences_submenu,
         &PredefinedMenuItem::about(None, Some(AboutMetadata {
             name: Some(env!("CARGO_PKG_NAME").to_string()),
@@ -72,6 +95,8 @@ fn main() {
     
     let mut keepawake: Option<KeepAwake> = None;
     let mut is_activated: bool = false;
+
+    let (tx, rx) = channel::<()>();
 
     event_loop.run(move |event, event_loop, control_flow| {
         *control_flow = ControlFlow::Wait;
@@ -136,6 +161,62 @@ fn main() {
             }
 
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
+                if event.id == activate_30_min.id() {
+                    keepawake.as_mut().unwrap().activate_for(
+                        5, 
+                        tx.clone()
+                    );
+                    helpers::icons::set_icon(
+                        tray_icon.clone().unwrap(), 
+                        window.as_ref().unwrap().theme(), 
+                        true
+                    );
+
+                    is_activated = true;
+                }
+
+                if event.id == activate_45_min.id() {
+                    keepawake.as_mut().unwrap().activate_for(
+                        45 * 60, 
+                        tx.clone()
+                    );
+                    helpers::icons::set_icon(
+                        tray_icon.clone().unwrap(), 
+                        window.as_ref().unwrap().theme(), 
+                        true
+                    );
+
+                    is_activated = true;
+                }
+
+                if event.id == activate_1_hour.id() {
+                    keepawake.as_mut().unwrap().activate_for(
+                        1 * 60 * 60, 
+                        tx.clone()
+                    );
+                    helpers::icons::set_icon(
+                        tray_icon.clone().unwrap(), 
+                        window.as_ref().unwrap().theme(), 
+                        true
+                    );
+
+                    is_activated = true;
+                }
+
+                if event.id == activate_2_hour.id() {
+                    keepawake.as_mut().unwrap().activate_for(
+                        2 * 60 * 60, 
+                        tx.clone()
+                    );
+                    helpers::icons::set_icon(
+                        tray_icon.clone().unwrap(), 
+                        window.as_ref().unwrap().theme(), 
+                        true
+                    );
+
+                    is_activated = true;
+                }
+
                 if event.id == autolaunch_item.id() {
                     let _ = match helpers::autolaunch::is_enabled().unwrap() {
                         true => helpers::autolaunch::disable(),
@@ -150,6 +231,18 @@ fn main() {
             }
 
             _ => {}
+        }
+
+        if let Ok(_) = rx.try_recv() {
+            drop(keepawake.clone().unwrap());
+
+            helpers::icons::set_icon(
+                tray_icon.clone().unwrap(), 
+                window.as_ref().unwrap().theme(), 
+                false
+            );
+
+            is_activated = false;
         }
     });
 }
