@@ -22,8 +22,13 @@ use tray_icon::{
 mod helpers;
 mod keepawake;
 mod autolaunch;
+mod preferences;
 
 use keepawake::KeepAwake;
+use preferences::{
+    Preferences,
+    PREF_RUN_ACTIVATED
+};
 
 enum UserEvent {
     TrayIconEvent(TrayIconEvent),
@@ -58,7 +63,9 @@ fn main() {
 
     let preferences_submenu: Submenu = Submenu::new("Preferences", true);
     let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
+    let run_activated_item: CheckMenuItem = CheckMenuItem::new("Run activated", true, true, None);
     let _ = preferences_submenu.append_items(&[
+        &run_activated_item,
         &autolaunch_item
     ]);
     
@@ -80,9 +87,10 @@ fn main() {
     let mut window: Option<Window> = None;
     let mut tray_icon: Option<TrayIcon> = None;
     
+    let mut preferences: Option<Preferences> = None;
+
     let mut keepawake: Option<KeepAwake> = None;
     let mut is_activated: bool = false;
-
     let (tx, rx) = channel::<()>();
 
     event_loop.run(move |event, event_loop, control_flow| {
@@ -108,10 +116,29 @@ fn main() {
                     window.as_ref().unwrap().theme(), 
                     is_activated
                 );
+
+                preferences = Some(Preferences::new().unwrap());
+                let _ = preferences.as_ref().unwrap().init();
+
+                if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_RUN_ACTIVATED) {
+                    run_activated_item.set_checked(val);
+                }
+
                 let _ = autolaunch::register();
                 autolaunch_item.set_checked(autolaunch::is_enabled().unwrap());
 
                 keepawake = Some(KeepAwake::new().unwrap());
+                if run_activated_item.is_checked() {
+                    if keepawake.as_mut().unwrap().activate().is_ok() {
+                        helpers::set_icon(
+                            tray_icon.clone().unwrap(), 
+                            window.as_ref().unwrap().theme(),
+                            true
+                        );
+
+                        is_activated = true;
+                    }
+                }
             }
 
             Event::WindowEvent { event, .. } => match event {
@@ -202,6 +229,12 @@ fn main() {
                     );
 
                     is_activated = true;
+                }
+
+                if event.id == run_activated_item.id() {
+                    let _ = preferences.as_ref()
+                        .unwrap()
+                        .toggle_preference(PREF_RUN_ACTIVATED);
                 }
 
                 if event.id == autolaunch_item.id() {

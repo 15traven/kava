@@ -6,8 +6,11 @@ build = "build.rs"
 
 [dependencies]
 image = "0.25.5"
+mslnk = "0.1.8"
+redb = "2.4.0"
 tao = "0.32.8"
 tray-icon = "0.20.0"
+whoami = "1.5.2"
 windows = { version = "0.60.0", features = ["Win32_System_Power", "Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
 windows-registry = "0.5.0"
 
