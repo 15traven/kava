@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
+[package.metadata.winres]
+OriginalFilename = "kava.exe"
+FileDescription = "Prevent your PC from going to sleep"
+
 [dependencies]
 image = "0.25.5"
 mslnk = "0.1.8"
