@@ -28,7 +28,11 @@ use keepawake::KeepAwake;
 use preferences::{
     Preferences, 
     PREF_RUN_ACTIVATED,
+<<<<<<< HEAD
     PREF_TOGGLE_WITH_LEFT_CLICK
+=======
+    PREF_TOGGLE_ON_LEFT_CLICK
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
 };
 
 enum UserEvent {
@@ -92,11 +96,19 @@ fn main() {
     ]);
 
     let preferences_submenu: Submenu = Submenu::new("Preferences", true);
+<<<<<<< HEAD
     let toggle_with_left_click_item: CheckMenuItem = CheckMenuItem::new("Toggle with left-click", true, true, None);
     let run_activated_item: CheckMenuItem = CheckMenuItem::new("Run activated", true, true, None);
     let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let _ = preferences_submenu.append_items(&[
         &toggle_with_left_click_item,
+=======
+    let toggle_on_left_click_item: CheckMenuItem = CheckMenuItem::new("Toggle on left click", true, true, None);
+    let run_activated_item: CheckMenuItem = CheckMenuItem::new("Run activated", true, true, None);
+    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
+    let _ = preferences_submenu.append_items(&[
+        &toggle_on_left_click_item,
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
         &PredefinedMenuItem::separator(),
         &run_activated_item,
         &autolaunch_item
@@ -158,8 +170,13 @@ fn main() {
                 if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_RUN_ACTIVATED) {
                     run_activated_item.set_checked(val);
                 }
+<<<<<<< HEAD
                 if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_TOGGLE_WITH_LEFT_CLICK) {
                     toggle_with_left_click_item.set_checked(val);
+=======
+                if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_TOGGLE_ON_LEFT_CLICK) {
+                    toggle_on_left_click_item.set_checked(val);
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
                 }
 
                 let _ = autolaunch::register();
@@ -190,7 +207,11 @@ fn main() {
                     TrayIconEvent::Click {  button, button_state, ..  } => {
                         if button == MouseButton::Left &&
                             button_state == MouseButtonState::Up &&
+<<<<<<< HEAD
                             toggle_with_left_click_item.is_checked() {
+=======
+                            toggle_on_left_click_item.is_checked() {
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
                                 toggle_keepawake(
                                     is_activated,
                                     keepawake.as_mut().unwrap(), 
@@ -283,10 +304,17 @@ fn main() {
                         .toggle_preference(PREF_RUN_ACTIVATED);
                 }
 
+<<<<<<< HEAD
                 if event.id == toggle_with_left_click_item.id() {
                     let _ = preferences.as_ref()
                         .unwrap()
                         .toggle_preference(PREF_TOGGLE_WITH_LEFT_CLICK);
+=======
+                if event.id == toggle_on_left_click_item.id() {
+                    let _ = preferences.as_ref()
+                        .unwrap()
+                        .toggle_preference(PREF_TOGGLE_ON_LEFT_CLICK);
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
                 }
 
                 if event.id == autolaunch_item.id() {

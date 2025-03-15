@@ -4,7 +4,11 @@ const DB_NAME: &str = "preferences.redb";
 const TABLE: TableDefinition<&str, bool> = TableDefinition::new("preferences");
  
 pub const PREF_RUN_ACTIVATED: &str = "run_activated";
+<<<<<<< HEAD
 pub const PREF_TOGGLE_WITH_LEFT_CLICK: &str = "activate_on_left_click";
+=======
+pub const PREF_TOGGLE_ON_LEFT_CLICK: &str = "activate_on_left_click";
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
 
 pub struct Preferences {
     db: Database
@@ -28,8 +32,13 @@ pub struct Preferences {
             self.save_preference(PREF_RUN_ACTIVATED, false)?;
         }
 
+<<<<<<< HEAD
         if !self.exists(PREF_TOGGLE_WITH_LEFT_CLICK).unwrap() {
             self.save_preference(PREF_TOGGLE_WITH_LEFT_CLICK, true)?;
+=======
+        if !self.exists(PREF_TOGGLE_ON_LEFT_CLICK).unwrap() {
+            self.save_preference(PREF_TOGGLE_ON_LEFT_CLICK, true)?;
+>>>>>>> 1f8cae4ef96aedb61199f3d81ac90040a32610ee
         }
 
         Ok(())
