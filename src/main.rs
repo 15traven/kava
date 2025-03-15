@@ -7,7 +7,7 @@ use tao::{
         ControlFlow, EventLoop, 
         EventLoopBuilder, EventLoopProxy
     }, 
-    window::{Window, WindowBuilder}
+    window::{Window, WindowBuilder, Theme}
 };
 use tray_icon::{
     menu::{
@@ -26,13 +26,43 @@ mod preferences;
 
 use keepawake::KeepAwake;
 use preferences::{
-    Preferences,
-    PREF_RUN_ACTIVATED
+    Preferences, 
+    PREF_RUN_ACTIVATED,
+    PREF_TOGGLE_WITH_LEFT_CLICK
 };
 
 enum UserEvent {
     TrayIconEvent(TrayIconEvent),
     MenuEvent(MenuEvent)
+}
+
+fn toggle_keepawake(
+    is_activated: bool,
+    keepawake: &mut KeepAwake,
+    tray_icon: TrayIcon,
+    theme: Theme,
+    activate_item: MenuItem
+) {
+    if !is_activated {
+        if keepawake.activate().is_ok() {
+            helpers::set_icon(
+                tray_icon, 
+                theme,
+                true
+            );
+
+            activate_item.set_text("Deactivate");
+        }
+    } else {
+        drop(keepawake.clone());
+        helpers::set_icon(
+            tray_icon, 
+            theme, 
+            false
+        );
+
+        activate_item.set_text("Activate");
+    }
 }
 
 fn main() {
@@ -62,16 +92,21 @@ fn main() {
     ]);
 
     let preferences_submenu: Submenu = Submenu::new("Preferences", true);
-    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
+    let toggle_with_left_click_item: CheckMenuItem = CheckMenuItem::new("Toggle with left-click", true, true, None);
     let run_activated_item: CheckMenuItem = CheckMenuItem::new("Run activated", true, true, None);
+    let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let _ = preferences_submenu.append_items(&[
+        &toggle_with_left_click_item,
+        &PredefinedMenuItem::separator(),
         &run_activated_item,
         &autolaunch_item
     ]);
     
     let tray_menu: Menu = Menu::new();
+    let activate_item: MenuItem = MenuItem::new("Activate", true, None);
     let quit_item: MenuItem = MenuItem::new("Quit", true, None);
     let _ = tray_menu.append_items(&[
+        &activate_item,
         &activate_for_submenu,
         &PredefinedMenuItem::separator(),
         &preferences_submenu,
@@ -123,6 +158,9 @@ fn main() {
                 if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_RUN_ACTIVATED) {
                     run_activated_item.set_checked(val);
                 }
+                if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_TOGGLE_WITH_LEFT_CLICK) {
+                    toggle_with_left_click_item.set_checked(val);
+                }
 
                 let _ = autolaunch::register();
                 autolaunch_item.set_checked(autolaunch::is_enabled().unwrap());
@@ -136,6 +174,7 @@ fn main() {
                             true
                         );
 
+                        activate_item.set_text("Deactivate");
                         is_activated = true;
                     }
                 }
@@ -149,32 +188,35 @@ fn main() {
             Event::UserEvent(UserEvent::TrayIconEvent(event)) => {
                 match event {
                     TrayIconEvent::Click {  button, button_state, ..  } => {
-                        if button == MouseButton::Left && button_state == MouseButtonState::Up {
-                            if !is_activated {
-                                if keepawake.as_mut().unwrap().activate().is_ok() {
-                                    helpers::set_icon(
-                                        tray_icon.clone().unwrap(), 
-                                        window.as_ref().unwrap().theme(),
-                                        true
-                                    );
-                                }
-                            } else {
-                                drop(keepawake.clone().unwrap());
-                                helpers::set_icon(
+                        if button == MouseButton::Left &&
+                            button_state == MouseButtonState::Up &&
+                            toggle_with_left_click_item.is_checked() {
+                                toggle_keepawake(
+                                    is_activated,
+                                    keepawake.as_mut().unwrap(), 
                                     tray_icon.clone().unwrap(), 
                                     window.as_ref().unwrap().theme(), 
-                                    false
+                                    activate_item.clone()
                                 );
+                                is_activated = !is_activated;
                             }
-
-                            is_activated = !is_activated;
-                        }
                     },
                     _ => {},
                 }
             }
 
             Event::UserEvent(UserEvent::MenuEvent(event)) => {
+                if event.id == activate_item.id() {
+                    toggle_keepawake(
+                        is_activated,
+                        keepawake.as_mut().unwrap(), 
+                        tray_icon.clone().unwrap(), 
+                        window.as_ref().unwrap().theme(), 
+                        activate_item.clone()
+                    );
+                    is_activated = !is_activated;
+                }
+
                 if event.id == activate_30_min.id() {
                     keepawake.as_mut().unwrap().activate_for(
                         5, 
@@ -186,6 +228,7 @@ fn main() {
                         true
                     );
 
+                    activate_item.set_text("Deactivate");
                     is_activated = true;
                 }
 
@@ -200,6 +243,7 @@ fn main() {
                         true
                     );
 
+                    activate_item.set_text("Deactivate");
                     is_activated = true;
                 }
 
@@ -214,6 +258,7 @@ fn main() {
                         true
                     );
 
+                    activate_item.set_text("Deactivate");
                     is_activated = true;
                 }
 
@@ -228,6 +273,7 @@ fn main() {
                         true
                     );
 
+                    activate_item.set_text("Deactivate");
                     is_activated = true;
                 }
 
@@ -235,6 +281,12 @@ fn main() {
                     let _ = preferences.as_ref()
                         .unwrap()
                         .toggle_preference(PREF_RUN_ACTIVATED);
+                }
+
+                if event.id == toggle_with_left_click_item.id() {
+                    let _ = preferences.as_ref()
+                        .unwrap()
+                        .toggle_preference(PREF_TOGGLE_WITH_LEFT_CLICK);
                 }
 
                 if event.id == autolaunch_item.id() {
@@ -262,6 +314,7 @@ fn main() {
                 false
             );
 
+            activate_item.set_text("Activate");
             is_activated = false;
         }
     });
