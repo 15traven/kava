@@ -162,8 +162,15 @@ fn main() {
                     toggle_on_left_click_item.set_checked(val);
                 }
 
-                let _ = autolaunch::register();
-                autolaunch_item.set_checked(autolaunch::is_enabled().unwrap());
+                if autolaunch::register().is_ok() {
+                    let is_enabled = autolaunch::is_enabled();
+                    if is_enabled.is_err() {
+                        let _ = autolaunch::enable();
+                        autolaunch_item.set_checked(true);
+                    } else {
+                        autolaunch_item.set_checked(is_enabled.unwrap());
+                    }
+                }
 
                 keepawake = Some(KeepAwake::new().unwrap());
                 if run_activated_item.is_checked() {
