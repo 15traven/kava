@@ -4,8 +4,8 @@ use windows_registry::{
     Result as WindowsRegistryResult
 };
 
-const APP_NAME: &str = "kava.lnk";
-const ADMIN_AL_REGKEY: &str = "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run";
+const APP_NAME: &str = "kava";
+const ADMIN_AL_REGKEY: &str = r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
 const ADMIN_TASK_MANAGER_OVERRIDE_REGKEY: &str =
     r"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32";
 const TASK_MANAGER_OVERRIDE_ENABLED_VALUE: [u8; 12] = [
