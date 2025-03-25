@@ -28,10 +28,13 @@ impl KeepAwake {
         })
     }
 
-    pub fn activate(&mut self) -> Result<(), WindowsError> {
+    pub fn activate(&mut self, keep_screen_on: bool) -> Result<(), WindowsError> {
         let mut esflags = ES_CONTINUOUS;
-        esflags |= ES_DISPLAY_REQUIRED;
         esflags |= ES_SYSTEM_REQUIRED;
+
+        if keep_screen_on {
+            esflags |= ES_DISPLAY_REQUIRED;
+        }
 
         unsafe {
             self.previous = SetThreadExecutionState(esflags);
@@ -43,8 +46,13 @@ impl KeepAwake {
         Ok(())
     }
 
-    pub fn activate_for(&mut self, duration: u64, tx: Sender<()>) {        
-        if self.activate().is_ok() {
+    pub fn activate_for(
+        &mut self, 
+        duration: u64, 
+        tx: Sender<()>, 
+        keep_screen_on: bool
+    ) {        
+        if self.activate(keep_screen_on).is_ok() {
             thread::spawn(move || {
                 thread::sleep(Duration::from_secs(duration));
                 let _ = tx.send(());

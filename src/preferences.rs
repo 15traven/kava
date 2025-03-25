@@ -5,6 +5,7 @@ const TABLE: TableDefinition<&str, bool> = TableDefinition::new("preferences");
  
 pub const PREF_RUN_ACTIVATED: &str = "run_activated";
 pub const PREF_TOGGLE_ON_LEFT_CLICK: &str = "activate_on_left_click";
+pub const PREF_KEEP_SCREEN_ON: &str = "keep_screen_on";
 
 pub struct Preferences {
     db: Database
@@ -30,6 +31,10 @@ pub struct Preferences {
 
         if !self.exists(PREF_TOGGLE_ON_LEFT_CLICK).unwrap() {
             self.save_preference(PREF_TOGGLE_ON_LEFT_CLICK, true)?;
+        }
+
+        if !self.exists(PREF_KEEP_SCREEN_ON).unwrap() {
+            self.save_preference(PREF_KEEP_SCREEN_ON, true)?;
         }
 
         Ok(())

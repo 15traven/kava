@@ -27,7 +27,8 @@ mod preferences;
 use keepawake::KeepAwake;
 use preferences::{
     Preferences, 
-    PREF_RUN_ACTIVATED,
+    PREF_KEEP_SCREEN_ON, 
+    PREF_RUN_ACTIVATED, 
     PREF_TOGGLE_ON_LEFT_CLICK
 };
 
@@ -41,10 +42,11 @@ fn toggle_keepawake(
     keepawake: &mut KeepAwake,
     tray_icon: TrayIcon,
     theme: Theme,
-    activate_item: MenuItem
+    activate_item: MenuItem,
+    keep_screen_on: bool
 ) {
     if !is_activated {
-        if keepawake.activate().is_ok() {
+        if keepawake.activate(keep_screen_on).is_ok() {
             helpers::set_icon(
                 tray_icon, 
                 theme,
@@ -92,10 +94,13 @@ fn main() {
     ]);
 
     let preferences_submenu: Submenu = Submenu::new("Preferences", true);
+    let keep_screen_on_item = CheckMenuItem::new("Keep screen on", true, true, None);
     let toggle_on_left_click_item: CheckMenuItem = CheckMenuItem::new("Toggle on left click", true, true, None);
     let run_activated_item: CheckMenuItem = CheckMenuItem::new("Run activated", true, true, None);
     let autolaunch_item = CheckMenuItem::new("Run at startup", true, true, None);
     let _ = preferences_submenu.append_items(&[
+        &keep_screen_on_item,
+        &PredefinedMenuItem::separator(),
         &toggle_on_left_click_item,
         &PredefinedMenuItem::separator(),
         &run_activated_item,
@@ -161,6 +166,9 @@ fn main() {
                 if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_TOGGLE_ON_LEFT_CLICK) {
                     toggle_on_left_click_item.set_checked(val);
                 }
+                if let Ok(val) = preferences.as_ref().unwrap().load_preference(PREF_KEEP_SCREEN_ON) {
+                    keep_screen_on_item.set_checked(val);
+                }
 
                 if autolaunch::register().is_ok() {
                     let is_enabled = autolaunch::is_enabled();
@@ -174,7 +182,7 @@ fn main() {
 
                 keepawake = Some(KeepAwake::new().unwrap());
                 if run_activated_item.is_checked() {
-                    if keepawake.as_mut().unwrap().activate().is_ok() {
+                    if keepawake.as_mut().unwrap().activate(keep_screen_on_item.is_checked()).is_ok() {
                         helpers::set_icon(
                             tray_icon.clone().unwrap(), 
                             window.as_ref().unwrap().theme(),
@@ -203,7 +211,8 @@ fn main() {
                                     keepawake.as_mut().unwrap(), 
                                     tray_icon.clone().unwrap(), 
                                     window.as_ref().unwrap().theme(), 
-                                    activate_item.clone()
+                                    activate_item.clone(),
+                                    keep_screen_on_item.is_checked()
                                 );
                                 is_activated = !is_activated;
                             }
@@ -219,7 +228,8 @@ fn main() {
                         keepawake.as_mut().unwrap(), 
                         tray_icon.clone().unwrap(), 
                         window.as_ref().unwrap().theme(), 
-                        activate_item.clone()
+                        activate_item.clone(),
+                        keep_screen_on_item.is_checked()
                     );
                     is_activated = !is_activated;
                 }
@@ -227,7 +237,8 @@ fn main() {
                 if event.id == activate_30_min.id() {
                     keepawake.as_mut().unwrap().activate_for(
                         5, 
-                        tx.clone()
+                        tx.clone(),
+                        keep_screen_on_item.is_checked()
                     );
                     helpers::set_icon(
                         tray_icon.clone().unwrap(), 
@@ -242,7 +253,8 @@ fn main() {
                 if event.id == activate_45_min.id() {
                     keepawake.as_mut().unwrap().activate_for(
                         45 * 60, 
-                        tx.clone()
+                        tx.clone(),
+                        keep_screen_on_item.is_checked()
                     );
                     helpers::set_icon(
                         tray_icon.clone().unwrap(), 
@@ -257,7 +269,8 @@ fn main() {
                 if event.id == activate_1_hour.id() {
                     keepawake.as_mut().unwrap().activate_for(
                         1 * 60 * 60, 
-                        tx.clone()
+                        tx.clone(),
+                        keep_screen_on_item.is_checked()
                     );
                     helpers::set_icon(
                         tray_icon.clone().unwrap(), 
@@ -272,7 +285,8 @@ fn main() {
                 if event.id == activate_2_hour.id() {
                     keepawake.as_mut().unwrap().activate_for(
                         2 * 60 * 60, 
-                        tx.clone()
+                        tx.clone(),
+                        keep_screen_on_item.is_checked()
                     );
                     helpers::set_icon(
                         tray_icon.clone().unwrap(), 
@@ -294,6 +308,12 @@ fn main() {
                     let _ = preferences.as_ref()
                         .unwrap()
                         .toggle_preference(PREF_TOGGLE_ON_LEFT_CLICK);
+                }
+
+                if event.id == keep_screen_on_item.id() {
+                    let _ = preferences.as_ref()
+                        .unwrap()
+                        .toggle_preference(PREF_KEEP_SCREEN_ON);
                 }
 
                 if event.id == autolaunch_item.id() {
@@ -323,6 +343,12 @@ fn main() {
 
             activate_item.set_text("Activate");
             is_activated = false;
+        }
+
+        if is_activated {
+            keep_screen_on_item.set_enabled(false);
+        } else {
+            keep_screen_on_item.set_enabled(true);
         }
     });
 }
