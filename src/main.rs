@@ -236,7 +236,7 @@ fn main() {
 
                 if event.id == activate_30_min.id() {
                     keepawake.as_mut().unwrap().activate_for(
-                        5, 
+                        30 * 60, 
                         tx.clone(),
                         keep_screen_on_item.is_checked()
                     );
